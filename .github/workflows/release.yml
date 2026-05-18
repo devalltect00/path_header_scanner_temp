@@ -2,7 +2,7 @@
 
 name: 🚀 Release
 
-run-name: 🚀 Release ${{ github.ref_name }}
+run-name: 🚀 Release • ${{ github.ref_name }}
 
 # =========================================================
 # 🚀 GitHub Release Workflow
@@ -21,30 +21,38 @@ run-name: 🚀 Release ${{ github.ref_name }}
 # Purpose:
 # - Validate release tags
 # - Detect release type
+# - Read annotated git tag message
 # - Build package artifacts
 # - Create GitHub Releases
 # - Attach release artifacts
-# - Provide release metadata
+# - Publish release metadata
 #
-# Supported Release Types:
-# - stable
-# - alpha
-# - beta
-# - rc
-# - dev
-# - post
+# Recommended:
+# - Use annotated git tags:
+#
+#   git tag -a v1.0.0
+#
+# Example:
+#
+#   🧪 Final Release 1.0.0
+#
+#   Path Header Scanner v1.0.0 is now stable
+#   and production-ready.
+#
+#   ### 🔍 Highlights
+#
+#   - Improved Docker workflows
+#   - Added production image publishing
+#
+#   ✅ This version is stable and suitable
+#   for production use.
 #
 # Docker Integration:
 # - Compatible with docker-prod.yml
 # - Uses production container tags
 #
-# Example Release Tags:
-# - v1.0.0
-# - v1.2.3-alpha.1
-# - v1.2.3-beta.1
-# - v1.2.3-rc.1
-# - v1.2.3-dev.1
-# - v1.2.3-post.1
+# Example Images:
+# - ghcr.io/devalltect00/path_header_scanner:v1.0.0
 # =========================================================
 
 on:
@@ -71,6 +79,8 @@ jobs:
 
       - name: 📥 Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       # =====================================================
       # 🐍 SETUP PYTHON
@@ -230,19 +240,21 @@ jobs:
         run: |
 
           TAG="${{ steps.version.outputs.tag }}"
+
           VERSION="${{ steps.version.outputs.version }}"
+
           TYPE="${{ steps.version.outputs.type }}"
 
+          git fetch --tags
+
+          # Extract annotated git tag message
+          git tag -l --format='%(contents)' "$TAG" > RELEASE_NOTES.md
+
           cat <<EOF > RELEASE_NOTES.md
-          # 🚀 Release $TAG
-
-          ## 📦 Version
-          \`$VERSION\`
-
-          ## 🧠 Release Type
-          \`$TYPE\`
 
           ## 📅 Release Information
+          - Version: \`$VERSION\`
+          - Release Type: \`$TYPE\`
           - Repository: ${{ github.repository }}
           - Commit: ${{ github.sha }}
           - Workflow: ${{ github.workflow }}
@@ -260,6 +272,41 @@ jobs:
           EOF
 
           echo "notes_path=RELEASE_NOTES.md" >> $GITHUB_OUTPUT
+
+      # - name: 📝 Generate release notes
+      #   id: notes
+      #   shell: bash
+      #   run: |
+
+      #     TAG="${{ steps.version.outputs.tag }}"
+      #     VERSION="${{ steps.version.outputs.version }}"
+      #     TYPE="${{ steps.version.outputs.type }}"
+
+      #     cat <<EOF > RELEASE_NOTES.md
+      #     ## 📦 Version
+      #     \`$VERSION\`
+
+      #     ## 🧠 Release Type
+      #     \`$TYPE\`
+
+      #     ## 📅 Release Information
+      #     - Repository: ${{ github.repository }}
+      #     - Commit: ${{ github.sha }}
+      #     - Workflow: ${{ github.workflow }}
+
+      #     ## 🐋 Docker Image
+
+      #     \`\`\`bash
+      #     docker pull ghcr.io/${{ github.repository_owner }}/path_header_scanner:$TAG
+      #     \`\`\`
+
+      #     ## 📥 Python Package
+
+      #     Artifacts are attached to this release.
+
+      #     EOF
+
+      #     echo "notes_path=RELEASE_NOTES.md" >> $GITHUB_OUTPUT
 
       # =====================================================
       # 🚀 CREATE GITHUB RELEASE
@@ -283,5 +330,5 @@ jobs:
           # Additionally options
           ## generate_release_notes: true
           ## append_body: true
-          ## make_latest: ${{ steps.version.outputs.type == 'stable' }}
+          make_latest: ${{ steps.version.outputs.type == 'stable' }}
           ## fail_on_unmatched_files: false
