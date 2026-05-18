@@ -458,14 +458,26 @@ qa:
 .PHONY: ci
 ci: c-ci
 
+.PHONY: lint-ci
+lint-ci:
+	python -m $(RUFF) check $(SOURCE_DIRS)
+
+.PHONY: format-check-ci
+format-check-ci:
+	python -m $(BLACK) --check $(SOURCE_DIRS)
+
+.PHONY: test-ci
+test-ci:
+	python -m $(PYTEST) -v
+
 .PHONY: check-ci
 check-ci:
 	@echo =========================================================
 	@echo Run CI validation workflow
 	@echo =========================================================
-	@$(MAKE) format-check
-	@$(MAKE) lint
-	@$(MAKE) test
+	@$(MAKE) format-check-ci
+	@$(MAKE) lint-ci
+	@$(MAKE) test-ci
 
 
 # =========================================================
