@@ -248,7 +248,9 @@ jobs:
           # Extract annotated git tag message
           git tag -l --format='%(contents)' "$TAG" > RELEASE_NOTES.md
 
-          cat <<EOF > RELEASE_NOTES.md
+          cat <<EOF >> RELEASE_NOTES.md
+
+          ---
 
           ## 📅 Release Information
           - Version: \`$VERSION\`
