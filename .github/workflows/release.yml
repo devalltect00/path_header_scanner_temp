@@ -200,7 +200,7 @@ jobs:
       # =====================================================
 
       - name: 🧪 Run validation workflow
-        run: make check
+        run: make check-ci
 
       # =====================================================
       # 📦 BUILD PACKAGE
