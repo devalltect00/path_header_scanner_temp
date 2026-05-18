@@ -1,0 +1,21 @@
+# docker-compose.yml
+
+services:
+  base:
+    image: path-header-scanner-base:latest
+
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    working_dir: /workspace
+
+    volumes:
+      - .:/workspace
+
+    environment:
+      PYTHONUNBUFFERED: "1"
+      HOST_PWD: ${PWD}
+
+    stdin_open: true
+    tty: true

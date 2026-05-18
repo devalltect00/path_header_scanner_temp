@@ -1,0 +1,69 @@
+# .github/workflows/docker-dev.yml
+
+name: Docker Dev Build
+
+# =========================================================
+# 🐳 Development Docker Build
+# ---------------------------------------------------------
+# Trigger:
+# - Runs on every push to `main`
+#
+# Purpose:
+# - Build and push a "development" Docker image
+# - Provide:
+#   - `:dev` tag → latest development version
+#   - `:sha-<commit>` → immutable version for debugging
+#
+# Why SHA tag?
+# - Allows rollback
+# - Helps debugging exact builds
+# =========================================================
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  docker-dev:
+    name: 🐳 Build Dev Image
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+       # 📥 Checkout repository
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      # 🔐 Login to GitHub Container Registry
+      - name: 🔐 Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      # 🔤 Normalize repository name → lowercase (required by GHCR)
+      - name: 🔤 Normalize image name
+        id: vars
+        run: |
+          echo "image_name=$(echo $GITHUB_REPOSITORY | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
+      # 🐳 Build & push dev image
+      - name: Build & push dev image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+
+          # 1. Latest development image
+          # 2. Immutable image tied to commit SHA
+          tags: |
+            ${{ env.REGISTRY }}/${{ steps.vars.outputs.image_name }}:dev
+            ${{ env.REGISTRY }}/${{ steps.vars.outputs.image_name }}:sha-${{ github.sha }}

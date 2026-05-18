@@ -1,0 +1,43 @@
+# docker-compose.yml
+
+name: path-header-scanner
+
+services:
+  path-header-scanner:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: path-header-scanner:latest
+    container_name: path-header-scanner
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+
+    stdin_open: true
+    tty: true
+
+    environment:
+      PYTHONUNBUFFERED: "1"
+      HOST_PWD: ${PWD}
+
+    command: ["--help"]
+
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: path-header-scanner:test
+    container_name: path-header-scanner-test
+    entrypoint: pytest tests -v
+    volumes:
+      - .:/workspace
+
+  docs:
+    image: squidfunk/mkdocs-material:latest
+    container_name: path-header-scanner-docs
+    working_dir: /workspace
+    ports:
+      - "8001:8000" # HostPort:ContainerPort — user 8001 externally
+    volumes:
+      - .:/workspace # Mount your project so it can be read mkdocs.yml and docs/
+    command: serve -a 0.0.0.0:8000

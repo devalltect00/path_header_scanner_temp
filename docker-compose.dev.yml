@@ -1,0 +1,154 @@
+# docker-compose.yml
+
+x-common-service: &common-service
+  extends:
+    file: docker-compose.yml
+    service: base
+
+x-dev-build: &dev-build
+  context: .
+  dockerfile: Dockerfile
+  target: development
+
+services:
+  # =========================================================
+  # 🚀 MAIN APPLICATION
+  # =========================================================
+
+  app:
+    image: path-header-scanner-dev:latest
+
+    <<: *common-service
+
+    build: *dev-build
+
+    stdin_open: true
+    tty: true
+
+  # =========================================================
+  # 🐚 SHELL
+  # =========================================================
+
+  shell:
+    extends:
+      service: app
+
+    entrypoint: []
+
+    command: sh
+
+  # =========================================================
+  # 🔍 LINTING
+  # =========================================================
+
+  lint:
+    extends:
+      service: app
+
+    entrypoint: []
+
+    command: >
+      python -m ruff check app tests
+
+  lint-fix:
+    extends:
+      service: app
+
+    entrypoint: []
+
+    command: >
+      python -m ruff check --fix app tests
+
+  # =========================================================
+  # 🎨 FORMATTING
+  # =========================================================
+
+  format:
+    extends:
+      service: app
+
+    entrypoint: []
+
+    command: >
+      python -m black app tests
+
+  format-check:
+    extends:
+      service: app
+
+    entrypoint: []
+
+    command: >
+      python -m black app tests --check
+
+  # =========================================================
+  # 🧪 TESTING
+  # =========================================================
+
+  test:
+    extends:
+      service: app
+
+    entrypoint: []
+
+    command: python -m pytest -v
+
+  # =========================================================
+  # 📚 DOCUMENTATION
+  # =========================================================
+
+  docs:
+    image: squidfunk/mkdocs-material:latest
+
+    ports:
+      - "8001:8000" # HostPort:ContainerPort — user 8001 externally
+
+    # volumes:
+    # - .:/workspace # Mount your project so it can be read mkdocs.yml and docs/
+
+    # command: serve -a 0.0.0.0:8000
+
+    entrypoint: python -m mkdocs
+
+    command: python -m mkdocs serve --dev-addr=0.0.0.0:8000
+
+  # =========================================================
+  # 📦 PACKAGE BUILD
+  # =========================================================
+
+  build:
+    extends:
+      service: app
+
+    entrypoint: []
+
+    command: python -m build
+
+  # =========================================================
+  # ✅ QUALITY ASSURANCE
+  # =========================================================
+
+  check:
+    extends:
+      service: app
+
+    entrypoint: []
+
+    command: >
+      sh -c "
+      python -m black --check app tests &&
+      python -m ruff check app tests &&
+      python -m pytest -v
+      "
+
+  fix:
+    extends:
+      service: app
+
+    entrypoint: []
+
+    command: >
+      sh -c "
+      python -m black app tests &&
+      python -m ruff check --fix app tests
+      "

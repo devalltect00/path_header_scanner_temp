@@ -1,0 +1,23 @@
+# docker-compose.yml
+
+x-common-service: &common-service
+  extends:
+    file: docker-compose.yml
+    service: base
+
+x-dev-build: &dev-build
+  context: .
+  dockerfile: Dockerfile
+  target: production
+
+services:
+  app:
+    image: path-header-scanner-prod:latest
+
+    <<: *common-service
+
+    build: *dev-build
+
+    entrypoint: path-header-scanner
+
+    command: ["--help"]

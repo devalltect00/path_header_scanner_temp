@@ -1,0 +1,674 @@
+# Makefile for path-header-scanner
+
+# =========================================================
+# 🔡 VARIABLES
+# =========================================================
+
+# -----------------------------
+# 🔡 VARIABLES - PROJECT
+# -----------------------------
+
+APP_NAME := path-header-scanner
+PROJECT_PACKAGE := path-header-scanner
+PROJECT_COMMAND := $(PROJECT_PACKAGE)
+
+# =========================================================
+# 🔡 VARIABLES - PYTHON VIRTUAL ENVIRONMENT
+# =========================================================
+
+VENV_NAME ?= venv
+VENV_DIR := $(CURDIR)/$(VENV_NAME)
+
+ifeq ($(OS),Windows_NT)
+	VENV_BIN := $(VENV_DIR)/Scripts
+	VENV_ACTIVATE := $(VENV_BIN)/activate.bat
+	VENV_ACTIVATE_PS := $(VENV_BIN)/Activate.ps1
+else
+	VENV_BIN := $(VENV_DIR)/bin
+	VENV_ACTIVATE := source $(VENV_BIN)/activate
+endif
+
+VENV_PYTHON := $(VENV_BIN)/python
+VENV_PIP := $(VENV_BIN)/pip
+
+# -----------------------------
+# 🔡 VARIABLES - DOCKER
+# -----------------------------
+
+DOCKER := docker
+
+DOCKER_TAG := latest
+DOCKER_REPOSITORY := $(APP_NAME)
+DOCKER_IMAGE := $(APP_NAME):$(DOCKER_TAG)
+
+DOCKER_SERVICE := path-header-scanner
+
+# Dockerfile
+DOCKERFILE_BASE := Dockerfile
+DOCKERFILE_DEV := Dockerfile.dev
+DOCKERFILE_PROD := Dockerfile.prod
+
+# Docker Images
+DOCKER_IMAGE_BASE := $(APP_NAME)-base
+DOCKER_IMAGE_DEV := $(APP_NAME)-dev
+DOCKER_IMAGE_PROD := $(APP_NAME)-prod
+
+DOCKER_RUN := $(DOCKER) run --rm
+DOCKER_RUN_IT := $(DOCKER_RUN) -it
+
+DOCKER_WORKSPACE := \
+	-w $(WORKSPACE) \
+	-v "$(CURDIR):$(WORKSPACE)"
+
+# -----------------------------
+# 🔡 VARIABLES - DOCKER COMPOSE
+# -----------------------------
+
+DOCKER_COMPOSE := $(DOCKER) compose
+
+# Docker Compose Files
+COMPOSE_FILE_BASE := docker-compose.yml
+COMPOSE_FILE_DEV := docker-compose.dev.yml
+COMPOSE_FILE_PROD := docker-compose.prod.yml
+
+# Development Compose Stack
+COMPOSE_DEV := \
+	-f $(COMPOSE_FILE_BASE) \
+	-f $(COMPOSE_FILE_DEV)
+
+# Production Compose Stack
+COMPOSE_PROD := \
+	-f $(COMPOSE_FILE_BASE) \
+	-f $(COMPOSE_FILE_PROD)
+
+COMPOSE_DEV_BUILD := $(DOCKER_COMPOSE) $(COMPOSE_DEV) build
+COMPOSE_DEV_RUN := $(DOCKER_COMPOSE) $(COMPOSE_DEV) run --rm
+COMPOSE_DEV_UP := $(DOCKER_COMPOSE) $(COMPOSE_DEV) up
+COMPOSE_DEV_DOWN := $(DOCKER_COMPOSE) $(COMPOSE_DEV) down
+COMPOSE_DEV_EXEC := $(DOCKER_COMPOSE) $(COMPOSE_DEV) exec
+
+COMPOSE_DEV_RUN_APP := $(COMPOSE_DEV_RUN) $(SERVICE_APP)
+COMPOSE_DEV_RUN_TEST := $(COMPOSE_DEV_RUN) $(SERVICE_TEST)
+COMPOSE_DEV_RUN_LINT := $(COMPOSE_DEV_RUN) $(SERVICE_LINT)
+COMPOSE_DEV_RUN_FORMAT := $(COMPOSE_DEV_RUN) $(SERVICE_FORMAT)
+COMPOSE_DEV_UP_DOCS := $(COMPOSE_DEV_UP) $(SERVICE_DOCS)
+COMPOSE_DEV_RUN_SHELL := $(COMPOSE_DEV_RUN) $(SERVICE_SHELL)
+COMPOSE_DEV_RUN_BUILD := $(COMPOSE_DEV_RUN) $(SERVICE_BUILD)
+
+COMPOSE_PROD_BUILD := $(DOCKER_COMPOSE) $(COMPOSE_PROD) build
+COMPOSE_PROD_RUN := $(DOCKER_COMPOSE) $(COMPOSE_PROD) run --rm
+COMPOSE_PROD_UP := $(DOCKER_COMPOSE) $(COMPOSE_PROD) up
+COMPOSE_PROD_DOWN := $(DOCKER_COMPOSE) $(COMPOSE_PROD) down
+
+COMPOSE_PROD_RUN_APP := $(COMPOSE_PROD_RUN) $(SERVICE_APP)
+
+# -----------------------------
+# 🔡 VARIABLES - DOCKER SERVICES
+# -----------------------------
+
+# Docker Services name
+SERVICE_APP := app
+SERVICE_TEST := test
+SERVICE_LINT := lint
+SERVICE_FORMAT := format
+SERVICE_DOCS := docs
+SERVICE_SHELL := shell
+SERVICE_BUILD := build
+
+# -----------------------------
+# 🔡 VARIABLES - Core Apps
+# -----------------------------
+
+WORKSPACE := /workspace
+
+TARGET ?= app
+WORKDIR ?= $(WORKSPACE)
+
+# -----------------------------
+# 🔡 VARIABLES - OTHERS
+# -----------------------------
+
+SYSTEM_PYTHON := python
+SYSTEM_PIP := pip
+PYTHON := $(VENV_PYTHON)
+PYTEST := pytest
+RUFF := ruff
+MKDOCS := mkdocs
+TWINE := twine
+
+.DEFAULT_GOAL := help
+
+# =========================================================
+# ⚙️ SETUP & INSTALLATION
+# =========================================================
+
+.PHONY: install
+install: check-venv
+	$(VENV_PIP) install -e .
+
+.PHONY: install-dev
+install-dev: check-venv
+	$(VENV_PIP) install -e ".[dev]"
+
+.PHONY: install-docs
+install-docs: check-venv
+	$(VENV_PIP) install -e ".[docs]"
+
+.PHONY: install-optional-deps
+install-optional-deps: check-venv
+	$(VENV_PIP) install -e ".[dev,docs]"
+
+.PHONY: setup
+setup: venv
+	$(VENV_PIP) install --upgrade pip
+	$(VENV_PIP) install -e ".[dev,docs]"
+
+	@echo.
+	@echo =========================================================
+	@echo Virtual environment setup completed.
+	@echo =========================================================
+	@echo.
+
+ifeq ($(OS),Windows_NT)
+	@echo CMD:
+	@echo   $(VENV_ACTIVATE)
+	@echo.
+	@echo PowerShell:
+	@echo   $(VENV_ACTIVATE_PS)
+else
+	@echo Run:
+	@echo   $(VENV_ACTIVATE)
+endif
+
+	@echo.
+
+.PHONY: pre-commit
+pre-commit:
+	pre-commit install
+
+# =========================================================
+# ⚙️ PYTHON VIRTUAL ENVIRONMENT
+# =========================================================
+
+.PHONY: venv
+venv:
+	$(SYSTEM_PYTHON) -m venv $(VENV_NAME)
+
+.PHONY: check-venv
+check-venv:
+ifeq ($(OS),Windows_NT)
+	@if not exist "$(VENV_PYTHON)" ( \
+		echo Virtual environment not found. Run 'make venv' first. && exit 1 \
+	)
+else
+	@test -f "$(VENV_PYTHON)" || ( \
+		echo "Virtual environment not found. Run 'make venv' first."; \
+		exit 1 \
+	)
+endif
+
+.PHONY: activate
+activate:
+ifeq ($(OS),Windows_NT)
+	@echo.
+	@echo CMD:
+	@echo   $(VENV_ACTIVATE)
+	@echo.
+	@echo PowerShell:
+	@echo   $(VENV_ACTIVATE_PS)
+	@echo.
+else
+	@echo.
+	@echo Run:
+	@echo   $(VENV_ACTIVATE)
+	@echo.
+endif
+
+.PHONY: check-python
+check-python:
+	python --version
+
+# =========================================================
+# 🚀 LOCAL COMMANDS
+# =========================================================
+
+.PHONY: run-scan
+run-scan:
+	$(PROJECT_COMMAND) scan $(TARGET)
+
+.PHONY: run-apply
+run-apply:
+	$(PROJECT_COMMAND) scan $(TARGET) --apply
+
+.PHONY: run-debug
+run-debug:
+	$(PROJECT_COMMAND) scan $(TARGET) --debug
+
+# =========================================================
+# 🧪 TESTING
+# =========================================================
+
+.PHONY: test
+test:
+	$(PYTHON) -m $(PYTEST)
+
+.PHONY: test-cov
+test-cov:
+	$(PYTHON) -m $(PYTEST) --cov=$(PROJECT_PACKAGE) --cov-report=term-missing
+
+.PHONY: test-verbose
+test-verbose:
+	$(PYTHON) -m $(PYTEST) -v
+
+.PHONY: compose-test
+compose-test:
+	$(COMPOSE_DEV_RUN_TEST) test
+
+.PHONY: compose-test-verbose
+compose-test-verbose:
+	$(COMPOSE_DEV_RUN_TEST) test -v
+
+# =========================================================
+# 🧶 LINT & FORMAT
+# =========================================================
+
+.PHONY: lint
+lint:
+	$(RUFF) check .
+
+.PHONY: lint-fix
+lint-fix:
+	$(RUFF) check . --fix
+
+.PHONY: format
+format:
+	$(RUFF) format .
+
+.PHONY: format-all
+format-all: lint format
+
+# =========================================================
+# 📦 BUILD & PUBLISH
+# =========================================================
+
+.PHONY: build
+build:
+	$(PYTHON) -m build
+
+.PHONY: publish
+publish:
+	$(TWINE) upload dist/*
+
+.PHONY: build-all
+build-all: build docker-build-all
+
+# =========================================================
+# 🐋 DOCKER BUILD
+# =========================================================
+
+.PHONY: docker-build-all
+docker-build-all:
+	$(DOCKER) build -t $(DOCKER_IMAGE_BASE) -f $(DOCKERFILE_BASE) .
+	$(DOCKER) build -t $(DOCKER_IMAGE_DEV) -f $(DOCKERFILE_DEV) .
+	$(DOCKER) build -t $(DOCKER_IMAGE_PROD) -f $(DOCKERFILE_PROD) .
+
+.PHONY: docker-build-base
+docker-build-base:
+	$(DOCKER) build -t $(DOCKER_IMAGE_BASE) -f $(DOCKERFILE_BASE) .
+
+.PHONY: docker-build-dev
+docker-build-dev:
+	$(DOCKER) build -t $(DOCKER_IMAGE_DEV) -f $(DOCKERFILE_DEV) .
+
+.PHONY: docker-build-prod
+docker-build-prod:
+	$(DOCKER) build -t $(DOCKER_IMAGE_PROD) -f $(DOCKERFILE_PROD) .
+
+.PHONY: compose-build-all
+compose-build-all:
+	$(DOCKER_COMPOSE) ${COMPOSE_DEV} build
+	$(DOCKER_COMPOSE) ${COMPOSE_PROD} build
+
+.PHONY: compose-build-dev
+compose-build-dev:
+	$(DOCKER_COMPOSE) ${COMPOSE_DEV} build
+
+.PHONY: compose-build-prod
+compose-build-prod:
+	$(DOCKER_COMPOSE) ${COMPOSE_PROD} build
+
+# =========================================================
+# 🐋 DOCKER RUN
+# =========================================================
+
+.PHONY: docker-run-app-scan
+docker-run-app-scan:
+	$(DOCKER_RUN_IT) $(DOCKER_WORKSPACE) $(DOCKER_IMAGE_PROD) scan $(TARGET)
+
+.PHONY: docker-run-app-apply
+docker-run-app-apply:
+	$(DOCKER_RUN_IT) $(DOCKER_WORKSPACE) $(DOCKER_IMAGE_PROD) scan $(TARGET) --apply
+
+.PHONY: docker-run-app-debug
+docker-run-app-debug:
+	$(DOCKER_RUN_IT) $(DOCKER_WORKSPACE) $(DOCKER_IMAGE_PROD) scan $(TARGET) --debug
+
+.PHONY: docker-run-test
+docker-run-run-test:
+	$(DOCKER_RUN) $(DOCKER_WORKSPACE) $(DOCKER_IMAGE_DEV) pytest -v
+
+# =========================================================
+# 🐋 DOCKER COMPOSE
+# =========================================================
+
+.PHONY: compose-run-app-scan
+compose-run-app-scan:
+	$(COMPOSE_PROD_RUN_APP) scan $(TARGET)
+
+.PHONY: compose-run-app-apply
+compose-run-app-apply:
+	$(COMPOSE_PROD_RUN_APP) scan $(TARGET) --apply
+
+.PHONY: compose-run-app-debug
+compose-run-app-debug:
+	$(COMPOSE_PROD_RUN_APP) scan $(TARGET) --debug
+
+.PHONY: compose-run-test
+compose-run-test:
+	$(COMPOSE_DEV_RUN_TEST)
+
+.PHONY: compose-run-lint
+compose-run-lint:
+	$(COMPOSE_DEV_RUN_LINT)
+
+.PHONY: compose-run-format
+compose-run-format:
+	$(COMPOSE_DEV_RUN_FORMAT)
+
+.PHONY: compose-run-docs
+compose-run-docs:
+	$(COMPOSE_DEV_UP_DOCS)
+
+.PHONY: compose-run-shell
+compose-run-shell:
+	$(COMPOSE_DEV_RUN_SHELL)
+
+.PHONY: compose-run-build
+compose-run-build:
+	$(COMPOSE_DEV_RUN_BUILD)
+
+.PHONY: compose-exec-shell
+compose-exec-shell:
+	$(COMPOSE_DEV_EXEC) $(SERVICE_APP) bash
+
+.PHONY: compose-up
+compose-up:
+	$(COMPOSE_DEV_UP)
+
+.PHONY: compose-up-build
+compose-up-build:
+	$(COMPOSE_DEV_UP) --build
+
+.PHONY: compose-up-detached
+compose-up-detached:
+	$(COMPOSE_DEV_UP) -d
+
+.PHONY: compose-down
+compose-down:
+	$(COMPOSE_DEV_DOWN)
+
+# =========================================================
+# 🐋 DOCKER Cleanup
+# =========================================================
+
+#Windows
+.PHONY: docker-remove-images-windows
+docker-remove-images-windows:
+	powershell -NoProfile -ExecutionPolicy Bypass -File scripts/docker/docker-remove-images.ps1 "$(DOCKER_REPOSITORY)"
+
+# Linux/macOS
+.PHONY: docker-remove-images-linux
+docker-remove-images-linux:
+	sh scripts/docker/docker-remove-images.sh "$(DOCKER_REPOSITORY)"
+
+# Universal
+.PHONY: docker-remove-images
+docker-remove-images:
+ifeq ($(OS),Windows_NT)
+	powershell -NoProfile -ExecutionPolicy Bypass -File scripts/docker/docker-remove-images.ps1 "$(DOCKER_REPOSITORY)"
+else
+	sh scripts/docker/docker-remove-images.sh "$(DOCKER_REPOSITORY)"
+endif
+
+# =========================================================
+# 📚 Documentation
+# =========================================================
+
+.PHONY: docs-serve
+docs-serve:
+	$(MKDOCS) serve
+
+.PHONY: docs-build
+docs-build:
+	$(MKDOCS) build
+
+.PHONY: compose-docs
+compose-docs:
+	$(DOCKER_COMPOSE) up docs
+
+.PHONY: compose-docs-build
+compose-docs-build:
+	$(DOCKER_COMPOSE) run --rm docs build
+
+# =========================================================
+# 🔧 GIT UTILITIES
+# =========================================================
+
+.PHONY: git-current-branch
+git-current-branch:
+	git branch --show-current
+
+.PHONY: git-url-origin
+git-url-origin:
+	git remote get-url origin
+
+.PHONY: git-log
+git-log:
+	git log --oneline --graph --decorate --all -n 25
+
+.PHONY: git-tags
+git-tags:
+	git log --no-walk --tags --pretty="format:%h %d %s"
+
+# =========================================================
+# 🧹 CLEANUP
+# =========================================================
+
+.PHONY: clean-venv
+clean-venv:
+	@echo Removing virtual environment...
+
+	@$(SYSTEM_PYTHON) -c "import shutil, pathlib; \
+venv = pathlib.Path('$(VENV_NAME)'); \
+shutil.rmtree(venv, ignore_errors=True) if venv.exists() else None"
+
+	@echo Virtual environment removed.
+
+.PHONY: docker-remove
+docker-remove:
+	@echo Removing Docker images...
+
+	-$(DOCKER) rmi $(DOCKER_IMAGE_BASE)
+	-$(DOCKER) rmi $(DOCKER_IMAGE_DEV)
+	-$(DOCKER) rmi $(DOCKER_IMAGE_PROD)
+
+	@echo Docker image cleanup completed.
+
+.PHONY: prune
+prune:
+	@echo Running Docker system prune...
+	$(DOCKER) system prune -f
+	@echo Docker prune completed.
+
+.PHONY: prune-all
+prune-all:
+	$(DOCKER) system prune -a -f --volumes
+
+# Linux shell
+.PHONY: clean-cache-linux
+clean-cache-linux:
+	rm -rf .pytest_cache
+	rm -rf .ruff_cache
+	rm -rf build
+	rm -rf dist
+	rm -rf *.egg-info
+
+# Universal
+.PHONY: clean-cache
+clean-cache:
+	@echo Cleaning cache files...
+
+	@$(SYSTEM_PYTHON) -c "import shutil, pathlib; \
+paths = [ \
+'.pytest_cache', \
+'.ruff_cache', \
+'build', \
+'dist' \
+]; \
+[shutil.rmtree(p, ignore_errors=True) for p in paths if pathlib.Path(p).exists()]"
+
+	@$(SYSTEM_PYTHON) -c "import pathlib, shutil; \
+[shutil.rmtree(p, ignore_errors=True) for p in pathlib.Path('.').glob('*.egg-info')]"
+
+	@echo Cache cleanup completed.
+
+# Linux shell
+.PHONY: clean-pyc
+clean-pyc:
+	find . -type f -name "*.pyc" -delete
+	find . -type d -name "__pycache__" -delete
+
+# Universal
+.PHONY: clean-pyc
+clean-pyc:
+	@echo Cleaning Python cache files...
+
+	@$(SYSTEM_PYTHON) -c "import pathlib; \
+[p.unlink() for p in pathlib.Path('.').rglob('*.pyc')]"
+
+	@$(SYSTEM_PYTHON) -c "import pathlib, shutil; \
+[shutil.rmtree(p, ignore_errors=True) for p in pathlib.Path('.').rglob('__pycache__')]"
+
+	@echo Python cache cleanup completed.
+
+.PHONY: clean-all
+clean-all: clean-cache clean-pyc
+	@echo Full cleanup completed.
+
+# =========================================================
+# 🆘 HELP
+# =========================================================
+
+.PHONY: help
+help:
+	@echo.
+	@echo =========================================================
+	@echo  $(APP_NAME) - Available Commands
+	@echo =========================================================
+	@echo.
+
+	@echo [Setup ^& Installation]
+	@echo   make install                         Install package
+	@echo   make install-dev                     Install package with dev dependencies
+	@echo   make install-docs                    Install package with docs dependencies
+	@echo   make install-optional-deps           Install package with all optional dependencies
+	@echo   make setup                           Initial project setup
+	@echo   make pre-commit                      Install pre-commit hooks
+	@echo.
+
+	@echo [Local Commands]
+	@echo   make run-scan                        Scan target directory
+	@echo   make run-apply                       Scan and apply header updates
+	@echo   make run-debug                       Run scanner with debug logging
+	@echo.
+
+	@echo [Testing]
+	@echo   make test                            Run tests
+	@echo   make test-cov                        Run tests with coverage
+	@echo   make test-verbose                    Run tests in verbose mode
+	@echo   make compose-test                    Run tests in Docker Compose
+	@echo   make compose-test-verbose            Run tests in Docker Compose with verbose output
+	@echo.
+
+	@echo [Lint ^& Format]
+	@echo   make lint                            Run Ruff linter
+	@echo   make lint-fix                        Fix lint issues automatically
+	@echo   make format                          Format source code
+	@echo   make format-all                      Run lint + format
+	@echo.
+
+	@echo [Build ^& Publish]
+	@echo   make build                           Build package
+	@echo   make publish                         Publish package
+	@echo   make build-all                       Build package and Docker image
+	@echo.
+
+	@echo [Docker]
+	@echo   make docker-build                    Build Docker image
+	@echo   make docker-run-scan                 Run scan command in Docker
+	@echo   make docker-run-apply                Run scan with --apply in Docker
+	@echo   make docker-run-debug                Run scan with --debug in Docker
+	@echo.
+
+	@echo [Docker Compose]
+	@echo   make compose-build                   Build Docker Compose services
+	@echo   make compose-run-scan                Run scan command
+	@echo   make compose-run-apply               Run scan with --apply
+	@echo   make compose-run-debug               Run scan with --debug
+	@echo   make compose-shell                   Run shell in Docker Compose service
+	@echo   make compose-up                      Start Docker Compose services
+	@echo   make compose-up-build                Start Docker Compose services with build
+	@echo   make compose-up-detached             Start Docker Compose services in detached mode
+	@echo   make compose-down                    Stop Docker Compose services
+	@echo.
+
+	@echo [Docker Cleanup]
+	@echo  make docker-remove-images             Remove Docker images matching `$(DOCKER_REPOSITORY)` (auto-detect OS)
+	@echo  make docker-remove-images-windows     Remove Docker images matching `$(DOCKER_REPOSITORY)` using PowerShell
+	@echo  make docker-remove-images-linux       Remove Docker images matching `$(DOCKER_REPOSITORY)` using shell script
+	@echo.
+
+	@echo [Documentation]
+	@echo   make docs-serve                      Serve documentation locally
+	@echo   make docs-build                      Build documentation locally
+	@echo   make compose-docs                    Serve docs using Docker Compose
+	@echo   make compose-docs-build              Build docs using Docker Compose
+	@echo.
+
+	@echo [Git Utilities]
+	@echo   make git-current-branch              Show current branch
+	@echo   make git-url-origin                  Show origin URL
+	@echo   make git-log                         Show recent Git log
+	@echo   make git-tags                        Show Git tags
+	@echo.
+
+	@echo [Cleanup]
+	@echo   make clean-cache                     Remove caches and build artifacts
+	@echo   make clean-pyc                       Remove Python cache files
+	@echo   make clean-all                       Remove all generated/cache files
+	@echo   make docker-remove                   Remove Docker image
+	@echo   make prune                           Run Docker system prune
+	@echo.
+
+	@echo [Variables]
+	@echo   TARGET=^<dir^>                         Target directory to scan
+	@echo   WORKDIR=^<dir^>                        Working directory
+	@echo.
+
+	@echo [Examples]
+	@echo   make run-scan TARGET=app WORKDIR=workspace
+	@echo   make docker-run-debug TARGET=src WORKDIR=workspace
+	@echo   make compose-run-apply TARGET=tests WORKDIR=workspace
+	@echo.
+
+	@echo =========================================================

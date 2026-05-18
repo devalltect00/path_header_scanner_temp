@@ -1,0 +1,238 @@
+[project]
+name = "path-header-scanner"
+
+version = "0.1.0"
+
+description = """
+Developer utility for inserting,
+validating, and updating file path
+headers across source code and
+documentation files.
+"""
+
+readme = "README.md"
+
+requires-python = ">=3.11"
+
+license = { text = "MIT" }
+
+authors = [
+    { name = "Rizky Fernandes (devalltect00)", email = "rizkypffdev37@gmail.com"},
+]
+
+maintainers = [
+    { name = "Rizky Fernandes (devalltect00)", email = "rizkypffdev37@gmail.com"},
+]
+
+keywords = [
+    "path-header",
+    "header-scanner",
+    "code-quality",
+    "developer-tools",
+    "documentation",
+    "source-code",
+    "code-organization",
+    "automation",
+    "cli",
+    "docker",
+]
+
+classifiers = [
+    "Development Status :: 3 - Alpha",
+
+    "Intended Audience :: Developers",
+
+    "License :: OSI Approved :: MIT License",
+
+    "Operating System :: OS Independent",
+
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+
+    "Environment :: Console",
+
+    "Topic :: Software Development",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Software Development :: Documentation",
+    "Topic :: Utilities",
+]
+
+dependencies = [
+    "typer>=0.12.0",
+    "rich>=14.0.0",
+]
+
+[project.optional-dependencies]
+
+dev = [
+    # Test
+    "pytest>=8.0.0",
+    "pytest-cov>=5.0.0",
+
+    # Formatting
+    "black>=25.0.0",
+
+    # Linting
+    "ruff>=0.12.0",
+
+    # Packaging
+    "build>=1.2.0",
+    "twine>=5.0.0",
+
+    # Git hooks
+    "pre-commit>=3.7.0",
+
+    # related to `AREPL for python` vscode extensions
+    "ipykernel",
+]
+
+docs = [
+    "mkdocs>=1.6.0",
+    "mkdocs-material>=9.5.0",
+]
+
+[project.urls]
+
+Homepage = "https://github.com/devalltect00/Path-Header-Scanner"
+
+Repository = "https://github.com/devalltect00/Path-Header-Scanner"
+
+Issues = "https://github.com/devalltect00/Path-Header-Scanner/issues"
+
+Documentation = "https://github.com/devalltect00/Path-Header-Scanner/tree/main/docs/path-header"
+
+Changelog = "https://github.com/devalltect00/Path-Header-Scanner/blob/main/CHANGELOG.md"
+
+[project.scripts]
+
+path-header-scanner = "app.cli.main:app"
+
+# =========================================================
+# TYPER
+# =========================================================
+
+[tool.typer]
+
+pretty_exceptions_enable = true
+
+# =========================================================
+# SETUPTOOLS
+# =========================================================
+
+[tool.setuptools.packages.find]
+
+include = [
+    "app*",
+]
+
+# =========================================================
+# PYTEST
+# =========================================================
+
+[tool.pytest.ini_options]
+
+testpaths = [
+    "tests",
+]
+
+python_files = [
+    "test_*.py",
+]
+
+python_classes = [
+    "Test*",
+]
+
+python_functions = [
+    "test_*",
+]
+
+addopts = [
+    "--strict-markers",             # Prevents invalid pytest markers.
+    "--tb=short",                   # Shorter traceback output.
+    "--cov=app",                    # Enable coverage
+    "--cov-report=term-missing",    # Shows missing lines directly in terminal.
+]
+
+# =========================================================
+# BLACK
+# =========================================================
+
+[tool.black]
+line-length = 88
+target-version = ["py311"]
+
+
+# =========================================================
+# RUFF
+# =========================================================
+
+[tool.ruff]
+
+line-length = 88
+
+target-version = "py311"
+
+exclude = [
+    ".git",
+    ".venv",
+    "venv",
+    "__pycache__",
+    "build",
+    "dist",
+]
+
+# =========================================================
+# RUFF LINT
+# =========================================================
+
+[tool.ruff.lint]
+
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle Warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+]
+
+ignore = [
+    "UP045",    # pyupgrade. Ignore checking for example: 'Optional[str]' -> 'str | None'
+    "COM812"    # flake8-commas. Ignore trailing comma
+]
+
+# =========================================================
+# RUFF FORMAT
+# =========================================================
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+
+# =========================================================
+# BUILD SYSTEM
+# =========================================================
+
+[build-system]
+
+requires = [
+    "setuptools>=68",
+    "wheel",
+]
+
+build-backend = "setuptools.build_meta"
+
+# =========================================================
+# COVERAGE
+# =========================================================
+
+[tool.coverage.run]
+source = ["app"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
