@@ -40,7 +40,8 @@ name: 🐋 Docker Development Image
 on:
   push:
     branches:
-      - main
+      - develop
+      - dev
 
   workflow_dispatch:
 
