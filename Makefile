@@ -443,6 +443,7 @@ fix: check-venv
 .PHONY: check
 check: check-venv
 	@echo =========================================================
+	@echo Run local validation workflow
 	@echo Run formatting, lint, and tests
 	@echo =========================================================
 	@$(MAKE) format-check
@@ -456,6 +457,15 @@ qa:
 
 .PHONY: ci
 ci: c-ci
+
+.PHONY: check-ci
+check-ci:
+	@echo =========================================================
+	@echo Run CI validation workflow
+	@echo =========================================================
+	@$(MAKE) format-check
+	@$(MAKE) lint
+	@$(MAKE) test
 
 
 # =========================================================
@@ -832,6 +842,11 @@ help:
 	@echo   make ci                       Run compose-based CI validation
 	@echo.
 
+	@echo [Local Validation]
+	@echo   make check                  Run formatting checks, lint, and tests using local virtual environment
+	@echo   make check-ci               Run CI-compatible formatting checks, lint, and tests without local venv dependency
+	@echo.
+
 	@echo [Lint ^& Format]
 	@echo   make lint                     Run Ruff lint checks
 	@echo   make lint-fix                 Run Ruff autofix
@@ -900,10 +915,10 @@ help:
 	@echo.
 	@echo   make c-test                   Run tests using compose
 	@echo.
-	@echo   make c-check                  Run full validation using Compose
+	@echo   make c-check                  Run formatting checks, lint, and tests using Docker Compose
 	@echo   make c-fix                    Run formatting and lint autofix using Compose
 	@echo   make c-qa                     Run full QA workflow using compose
-	@echo   make c-ci                     Run CI validation workflow using compose
+	@echo   make c-ci                     Run Full CI workflow using Docker Compose
 	@echo.
 	@echo   make c-lint                   Run linter using compose
 	@echo   make c-lint-fix               Run Ruff autofix using compose

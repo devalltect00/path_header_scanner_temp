@@ -64,4 +64,4 @@ jobs:
 
       # ✅ FULL VALIDATION
       - name: ✅ Run validation workflow
-        run: make check
+        run: make check-ci
