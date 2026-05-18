@@ -245,8 +245,6 @@ jobs:
 
           TYPE="${{ steps.version.outputs.type }}"
 
-          git fetch --tags
-
           # Extract annotated git tag message
           git tag -l --format='%(contents)' "$TAG" > RELEASE_NOTES.md
 
