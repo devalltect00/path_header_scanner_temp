@@ -36,3 +36,4 @@ make compose-up-detached
 docker run -it --rm -v "%cd%:/workspace" -w /workspace path-header-scanner-prod:latest scan app --debug
 
 docker run -it --rm --entrypoint "" -v "%cd%:/workspace" -w /workspace path-header-scanner-dev:latest python -m pytest -v
+
