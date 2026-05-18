@@ -105,8 +105,8 @@ jobs:
           # REGEX='^v[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.]+)?(\+[0-9A-Za-z.]+)?$'
           REGEX='^v[0-9]+\.[0-9]+\.[0-9]+([.-](alpha|beta|rc|dev|post)\.[0-9]+)?(\+[0-9A-Za-z.]+)?$'
 
-          if [[ ! "$RAW_TAG" =~ $REGEX ]]; then
-            echo "❌ Invalid tag format: $RAW_TAG"
+          if [[ ! "$TAG" =~ $REGEX ]]; then
+            echo "❌ Invalid tag format: $TAG"
             echo "✅ Expected formats:"
             echo "   v1.2.3"
             echo "   v1.2.3-alpha.1"
