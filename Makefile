@@ -80,7 +80,6 @@ endif
 # Lines to exclude from requirements.txt (prefix match)
 REQUIREMENTS_EXCLUDE_PREFIXES := -e
 
-# =========================================================
 # ----------------------------------------------------------
 # 🔡 VARIABLES - 🧰 DEVELOPMENT TOOLS
 # ----------------------------------------------------------
@@ -93,9 +92,9 @@ TWINE := twine
 BUILD := build
 PRE_COMMIT := pre-commit
 
-# =========================================================
+# ----------------------------------------------------------
 # 🔡 VARIABLES - 🐋 LOCAL APP ARGS
-# =========================================================
+# ----------------------------------------------------------
 
 LOCAL_SCAN_ARGS ?=
 
@@ -145,9 +144,9 @@ SERVICE_DOCS := docs
 SERVICE_SHELL := shell
 SERVICE_BUILD := build
 
-# =========================================================
+# ----------------------------------------------------------
 # 🔡 VARIABLES - 🐋 DOCKER APP ARGS
-# =========================================================
+# ----------------------------------------------------------
 
 DOCKER_SCAN_ARGS ?=
 
@@ -200,11 +199,42 @@ COMPOSE_PROD_DOWN := $(COMPOSE_PROD) down
 
 COMPOSE_PROD_RUN_APP := $(COMPOSE_PROD_RUN) $(SERVICE_APP)
 
-# =========================================================
+# ----------------------------------------------------------
 # 🔡 VARIABLES - 🐋 DOCKER COMPOSE APP ARGS
-# =========================================================
+# ----------------------------------------------------------
 
 COMPOSE_SCAN_ARGS ?=
+
+# ----------------------------------------------------------
+# 🔡 VARIABLES - 🌐 GITHUB CONTAINER REGISTRY
+# ----------------------------------------------------------
+
+CONTAINER_REGISTRY ?= ghcr.io
+
+CONTAINER_USERNAME ?= devalltect00
+
+CONTAINER_REPOSITORY ?=
+
+CONTAINER_TAG ?= latest
+
+CONTAINER_IMAGE = \
+	$(CONTAINER_REGISTRY)/$(CONTAINER_USERNAME)/$(CONTAINER_REPOSITORY):$(CONTAINER_TAG)
+
+# ----------------------------------------------------------
+# 🔡 VARIABLES - 🌐 GITHUB CONTAINER - Workspace
+# ----------------------------------------------------------
+
+REMOTE_WORKSPACE ?= $(CURDIR)
+
+DOCKER_REMOTE_WORKSPACE := \
+	-w /workspace \
+	-v "$(REMOTE_WORKSPACE):/workspace"
+
+# ----------------------------------------------------------
+# 🔡 VARIABLES - 🌐 GITHUB CONTAINER - ARGS
+# ----------------------------------------------------------
+
+REMOTE_ARGS ?=
 
 # =========================================================
 # 🛠️ INTERNAL HELPERS
@@ -656,6 +686,44 @@ c-ci:
 	@$(MAKE) c-check
 
 # =========================================================
+# 🌐 REMOTE CONTAINER - PATH HEADER SCAN
+# =========================================================
+
+# GITHUB REMOTE CONTAINER
+
+.PHONY: r-phs-pull
+r-phs-pull: CONTAINER_REPOSITORY=path_header_scanner
+r-phs-pull:
+	$(DOCKER) pull $(CONTAINER_IMAGE)
+
+.PHONY: r-phs-scan
+r-phs-scan: CONTAINER_REPOSITORY=path_header_scanner
+r-phs-scan:
+	$(DOCKER_RUN_INTERACTIVE) \
+	$(DOCKER_REMOTE_WORKSPACE) \
+	$(CONTAINER_IMAGE) \
+	scan $(TARGET) $(REMOTE_ARGS)
+
+.PHONY: r-phs-scan-only
+r-phs-scan-only:
+	@$(MAKE) r-phs-pull
+	@$(MAKE) r-phs-scan TARGET="$(TARGET)"
+
+.PHONY: r-phs-scan-apply
+r-phs-scan-apply:
+	@$(MAKE) r-phs-pull
+	@$(MAKE) r-phs-scan \
+		TARGET="$(TARGET)" \
+		REMOTE_ARGS="--apply"
+
+.PHONY: r-phs-scan-debug
+r-phs-scan-debug:
+	@$(MAKE) r-phs-pull
+	@$(MAKE) r-phs-scan \
+		TARGET="$(TARGET)" \
+		REMOTE_ARGS="--debug"
+
+# =========================================================
 # 🔧 GIT UTILITIES
 # =========================================================
 
@@ -848,6 +916,15 @@ help:
 	@echo   make c-exec-shell             Execute shell inside running app container
 	@echo.
 
+	@echo [Remote Container - Path Header Scanner]
+	@echo   make r-phs-pull                                         Pull remote container image from registry
+	@echo.
+	@echo   make r-phs-scan TARGET=^<path^> REMOTE_ARGS=              Run scanner from remote container image
+	@echo   make r-phs-scan-only TARGET=^<path^>                      Run scanner from remote container with default settings
+	@echo   make r-phs-scan-apply TARGET=^<path^>                     Run scanner from remote container and apply changes
+	@echo   make r-phs-scan-debug TARGET=^<path^>                     Run scanner from remote container in debug mode
+	@echo.
+
 	@echo [Git Utilities]
 	@echo   make git-current-branch       Show current branch
 	@echo   make git-url-origin           Show Git remote origin URL
@@ -875,6 +952,14 @@ help:
 	@echo   DOCKER_SCAN_ARGS=^<args^>       Additional arguments for Docker scan commands
 	@echo   COMPOSE_SCAN_ARGS=^<args^>      Additional arguments for compose scan commands
 	@echo.
+	@echo   REMOTE_WORKSPACE=^<path^>       Workspace directory mounted into remote container
+	@echo   REMOTE_ARGS=^<args^>            Additional arguments passed to remote scanner
+	@echo   CONTAINER_TAG=^<tag^>           Remote container image tag
+	@echo   CONTAINER_USERNAME=^<name^>     Remote container registry username
+	@echo.
+	@echo   CONTAINER_REGISTRY=^<registry^> Remote container registry
+	@echo   CONTAINER_REPOSITORY=^<repo^>   Remote container repository
+	@echo.
 
 	@echo [Examples]
 	@echo   make l-scan-only TARGET=app WORKDIR=workspace
@@ -883,7 +968,7 @@ help:
 	@echo.
 	@echo.
 	@echo   # --------------------------------------------------
-	@echo   # 🚀 Local Development Workflow
+	@echo   # Local Development Workflow
 	@echo   # --------------------------------------------------
 	@echo   make l-scan-only TARGET=app
 	@echo   make l-scan-apply TARGET=tests
@@ -891,7 +976,7 @@ help:
 	@echo   make check
 	@echo.
 	@echo   # --------------------------------------------------
-	@echo   # 🐋 Docker Workflow
+	@echo   # Docker Workflow
 	@echo   # --------------------------------------------------
 	@echo   make d-build-dev
 	@echo   make d-scan-only TARGET=app
@@ -899,7 +984,7 @@ help:
 	@echo   make d-test
 	@echo.
 	@echo   # --------------------------------------------------
-	@echo   # 🐋 Docker Compose Workflow
+	@echo   # Docker Compose Workflow
 	@echo   # --------------------------------------------------
 	@echo   make c-build-dev
 	@echo   make c-scan-only TARGET=app
@@ -907,14 +992,40 @@ help:
 	@echo   make c-check
 	@echo.
 	@echo   # --------------------------------------------------
-	@echo   # ✅ Full QA Workflow
+	@echo   # Full QA Workflow
 	@echo   # --------------------------------------------------
 	@echo   make c-qa
 	@echo.
 	@echo   # --------------------------------------------------
-	@echo   # 🔄 CI Workflow
+	@echo   # CI Workflow
 	@echo   # --------------------------------------------------
 	@echo   make c-ci
+	@echo.
+	@echo   # --------------------------------------------------
+	@echo   # Remote Container Workflow - Path Header Scanner
+	@echo   # --------------------------------------------------
+	@echo   # Pull latest remote image
+	@echo   make r-phs-pull
+	@echo.
+	@echo   # Pull a specific image version
+	@echo   make r-phs-pull CONTAINER_TAG=1.2.3
+	@echo.
+	@echo   # Pull image using SHA tag
+	@echo   make r-phs-pull CONTAINER_TAG=sha-80e987cab9263c49275927465242be9a187b2dfb
+	@echo.
+	@echo   # Pull image using specified repository name and tag
+	@echo   make r-phs-pull CONTAINER_REPOSITORY=path_header_scanner CONTAINER_TAG=latest
+	@echo.
+	@echo   # Common command
+	@echo   make r-phs-scan-only TARGET=app
+	@echo   make r-phs-scan-apply TARGET=tests
+	@echo   make r-phs-scan-debug TARGET=.
+	@echo.
+	@echo   # Scan another local project using remote image
+	@echo   make r-phs-scan-only REMOTE_WORKSPACE="E:/another-project" TARGET=.
+	@echo.
+	@echo   # Use a specific container image version
+	@echo   make r-phs-scan-only TARGET=. CONTAINER_TAG=1.0.0
 	@echo.
 
 	@echo =========================================================

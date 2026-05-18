@@ -1,57 +1,109 @@
 # .github/workflows/release.yml
 
-name: Create GitHub Release
+name: 🚀 Release
 
 # =========================================================
-# 📦 GitHub Release Automation
+# 🚀 GitHub Release Workflow
 # ---------------------------------------------------------
 # Trigger:
-# - Runs when pushing version tags
-#   Example:
-#     git push origin v1.2.3
+# - Runs when pushing version tags like:
+#     v1.0.0
+#     v1.2.3-alpha.1
+#     v1.2.3-beta.1
+#     v1.2.3-rc.1
+#     v1.2.3-dev.1
+#     v1.2.3-post.1
 #
-# Responsibilities:
-# - Detect version type (alpha, beta, rc, stable)
-# - Extract tag message
-# - Generate release notes
-# - Attach artifacts
-# - Publish GitHub Release
+# - Can also be triggered manually
 #
-# Important:
-# - Works with SemVer & PEP 440-style tags
+# Purpose:
+# - Validate release tags
+# - Detect release type
+# - Build package artifacts
+# - Create GitHub Releases
+# - Attach release artifacts
+# - Provide release metadata
+#
+# Supported Release Types:
+# - stable
+# - alpha
+# - beta
+# - rc
+# - dev
+# - post
+#
+# Docker Integration:
+# - Compatible with docker-prod.yml
+# - Uses production container tags
+#
+# Example Release Tags:
+# - v1.0.0
+# - v1.2.3-alpha.1
+# - v1.2.3-beta.1
+# - v1.2.3-rc.1
+# - v1.2.3-dev.1
+# - v1.2.3-post.1
 # =========================================================
 
 on:
   push:
     tags:
-      - "v*.*.*" # Matches v1.2.3, v1.2.3-alpha.1, etc.
+      - "v*"
+
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: read
 
 jobs:
   release:
-    name: 📦 Create Release
+    name: 🚀 Create Release
+
     runs-on: ubuntu-latest
 
-    permissions:
-      contents: write
-
     steps:
-      # 📥 Checkout repo (with tags)
-      - name: 📥 Checkout
+      # =====================================================
+      # 📥 CHECKOUT
+      # =====================================================
+
+      - name: 📥 Checkout repository
         uses: actions/checkout@v4
+
+      # =====================================================
+      # 🐍 SETUP PYTHON
+      # =====================================================
+
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v5
         with:
-          fetch-depth: 0  # ✅ Required for tag metadata
+          python-version: "3.13"
+          cache: pip
 
-      # 🛑 VALIDATION
-      - name: 🛑 Validate version tag
-        id: validate
+      # =====================================================
+      # 📦 INSTALL BUILD DEPENDENCIES
+      # =====================================================
+
+      - name: 📦 Install build dependencies
         run: |
-          RAW_TAG=${GITHUB_REF#refs/tags/}
+          python -m pip install --upgrade pip
+          pip install build
 
-          echo "🔍 Validating tag: $RAW_TAG"
+      # =====================================================
+      # 🏷️ VALIDATE TAG
+      # =====================================================
 
-          # Strict SemVer with pre-release support
-          # REGEX="^v([0-9]+)\.([0-9]+)\.([0-9]+)(-(alpha|beta|rc)\.[0-9]+)?$"
-          REGEX='^v[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.]+)?(\+[0-9A-Za-z.]+)?$'
+      - name: 🏷️ Validate release tag
+        id: validate
+        shell: bash
+        run: |
+
+          TAG="${GITHUB_REF_NAME}"
+
+          echo "Tag: $TAG"
+
+          # REGEX='^v[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.]+)?(\+[0-9A-Za-z.]+)?$'
+          REGEX='^v[0-9]+\.[0-9]+\.[0-9]+([.-](alpha|beta|rc|dev|post)\.[0-9]+)?(\+[0-9A-Za-z.]+)?$'
 
           if [[ ! "$RAW_TAG" =~ $REGEX ]]; then
             echo "❌ Invalid tag format: $RAW_TAG"
@@ -65,121 +117,161 @@ jobs:
             exit 1
           fi
 
-          echo "✅ Tag is valid"
-      
-      - name: 🧠 Extract version parts
+          echo "✅ Release tag validated"
+
+      # =====================================================
+      # 🧠 DETECT RELEASE TYPE
+      # =====================================================
+
+      - name: 🧠 Detect release type
         id: version
+        shell: bash
         run: |
-          RAW_TAG=${GITHUB_REF#refs/tags/}
 
-          # Normalize tag by removing optional "v" prefix
-          # (e.g., "v1.2.3" → "1.2.3") for PEP 440 compliance
-          VERSION=${RAW_TAG#v}
+          TAG="${GITHUB_REF_NAME}"
 
-          echo "🔍 Raw tag: $RAW_TAG"
-          echo "🔍 Version: $VERSION"
+          VERSION="${TAG#v}"
 
-          # Split base + suffix
-          BASE_VERSION=$(echo "$VERSION" | cut -d'-' -f1)
-          SUFFIX=$(echo "$VERSION" | cut -s -d'-' -f2)
-
-          # Extract MAJOR.MINOR.PATCH
-          IFS='.' read -r MAJOR MINOR PATCH <<< "$BASE_VERSION"
-
-          # -------------------------------------------------
-          # Detect release type (SemVer / PEP440 compatible)
-          # -------------------------------------------------
           TYPE="stable"
-          if [[ "$SUFFIX" == alpha* ]]; then
+
+          if [[ "$VERSION" == *alpha* ]]; then
             TYPE="alpha"
-          elif [[ "$SUFFIX" == beta* ]]; then
+
+          elif [[ "$VERSION" == *beta* ]]; then
             TYPE="beta"
-          elif [[ "$SUFFIX" == rc* ]]; then
+
+          elif [[ "$VERSION" == *rc* ]]; then
             TYPE="rc"
-          elif [[ "$SUFFIX" == dev* ]]; then
+
+          elif [[ "$VERSION" == *dev* ]]; then
             TYPE="dev"
-          elif [[ "$SUFFIX" == post* ]]; then
+
+          elif [[ "$VERSION" == *post* ]]; then
             TYPE="post"
           fi
 
-          # Export outputs
-          echo "tag=$RAW_TAG" >> $GITHUB_OUTPUT
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "base=$BASE_VERSION" >> $GITHUB_OUTPUT
+          PRERELEASE=false
 
-          echo "major=$MAJOR" >> $GITHUB_OUTPUT
-          echo "minor=$MINOR" >> $GITHUB_OUTPUT
-          echo "patch=$PATCH" >> $GITHUB_OUTPUT
-
-          echo "suffix=$SUFFIX" >> $GITHUB_OUTPUT
-          echo "type=$TYPE" >> $GITHUB_OUTPUT
-
-          echo "✅ Extracted:"
-          echo "  - MAJOR=$MAJOR"
-          echo "  - MINOR=$MINOR"
-          echo "  - PATCH=$PATCH"
-          echo "  - TYPE=$TYPE"
-
-      # 🔤 Normalize image name
-      - name: 🔤 Normalize image name
-        id: vars
-        run: |
-          echo "image_name=$(echo $GITHUB_REPOSITORY | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
-
-      # 📝 Extract tag message
-      - name: 📝 Extract tag message
-        id: notes
-        run: |
-          NOTES=$(git for-each-ref refs/tags/${{ steps.version.outputs.tag }} --format='%(contents)')
-
-          # Fallback if tag message is empty
-          if [ -z "$NOTES" ]; then
-            NOTES="Release ${{ steps.version.outputs.tag }}"
+          if [[ "$TYPE" != "stable" && "$TYPE" != "post" ]]; then
+            PRERELEASE=true
           fi
 
-          echo "notes<<EOF" >> $GITHUB_OUTPUT
-          echo "$NOTES" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "type=$TYPE" >> $GITHUB_OUTPUT
+          echo "prerelease=$PRERELEASE" >> $GITHUB_OUTPUT
 
-      # 📦 Create example artifact
-      - name: 📦 Create artifact (example)
+          echo "Detected release type: $TYPE"
+
+      # =====================================================
+      # 🧠 BUILD RELEASE TITLE
+      # =====================================================
+
+      - name: 🧠 Build release title
+        id: title
+        shell: bash
         run: |
-          mkdir dist
-          echo "Example artifact for ${{ steps.version.outputs.tag }}" > dist/info.txt
-          zip -r release.zip dist/
 
-      # 🧠 Build release body
-      - name: 🧠 Build release body
-        id: body
+          TYPE="${{ steps.version.outputs.type }}"
+          TAG="${{ steps.version.outputs.tag }}"
+
+          TITLE="🚀 Release"
+
+          if [[ "$TYPE" == "alpha" ]]; then
+            TITLE="🧪 Alpha Release"
+
+          elif [[ "$TYPE" == "beta" ]]; then
+            TITLE="🔬 Beta Release"
+
+          elif [[ "$TYPE" == "rc" ]]; then
+            TITLE="🚧 Release Candidate"
+
+          elif [[ "$TYPE" == "dev" ]]; then
+            TITLE="🛠️ Development Release"
+
+          elif [[ "$TYPE" == "post" ]]; then
+            TITLE="📦 Post Release"
+          fi
+
+          echo "title=$TITLE $TAG" >> $GITHUB_OUTPUT
+
+      # =====================================================
+      # 🧪 RUN VALIDATION
+      # =====================================================
+
+      - name: 🧪 Run validation workflow
+        run: make check
+
+      # =====================================================
+      # 📦 BUILD PACKAGE
+      # =====================================================
+
+      - name: 📦 Build package artifacts
         run: |
-          IMAGE="ghcr.io/${{ steps.vars.outputs.image_name }}:${{ steps.version.outputs.version }}"
+          python -m build
 
-          printf "## 🚀 %s\n\n%s\n\n---\n\n### 🐳 Docker Image\n\`\`\`bash\ndocker pull %s\n\`\`\`\n\n---\n\n### 📦 Artifacts\n- Attached below\n\n---\n\n### ℹ️ Info\n- Version: %s\n- Type: %s\n" \
-            "${{ steps.version.outputs.tag }}" \
-            "${{ steps.notes.outputs.notes }}" \
-            "$IMAGE" \
-            "${{ steps.version.outputs.version }}" \
-            "${{ steps.version.outputs.type }}" \
-            > release_body.md
+      # =====================================================
+      # 📝 GENERATE RELEASE NOTES
+      # =====================================================
 
-      - name: 🚀 Create GitHub Release
+      - name: 📝 Generate release notes
+        id: notes
+        shell: bash
+        run: |
+
+          TAG="${{ steps.version.outputs.tag }}"
+          VERSION="${{ steps.version.outputs.version }}"
+          TYPE="${{ steps.version.outputs.type }}"
+
+          cat <<EOF > RELEASE_NOTES.md
+          # 🚀 Release $TAG
+
+          ## 📦 Version
+          \`$VERSION\`
+
+          ## 🧠 Release Type
+          \`$TYPE\`
+
+          ## 📅 Release Information
+          - Repository: ${{ github.repository }}
+          - Commit: ${{ github.sha }}
+          - Workflow: ${{ github.workflow }}
+
+          ## 🐋 Docker Image
+
+          \`\`\`bash
+          docker pull ghcr.io/${{ github.repository_owner }}/path_header_scanner:$TAG
+          \`\`\`
+
+          ## 📥 Python Package
+
+          Artifacts are attached to this release.
+
+          EOF
+
+          echo "notes_path=RELEASE_NOTES.md" >> $GITHUB_OUTPUT
+
+      # =====================================================
+      # 🚀 CREATE GITHUB RELEASE
+      # =====================================================
+
+      - name: 🚀 Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.tag }}
-          name: |
-            ${{ steps.version.outputs.type == 'dev' && '🛠️ Dev Release' || '' }}
-            ${{ steps.version.outputs.type == 'alpha' && '🧪 Alpha Release' || '' }}
-            ${{ steps.version.outputs.type == 'beta' && '🔬 Beta Release' || '' }}
-            ${{ steps.version.outputs.type == 'rc' && '🚧 RC Release' || '' }}
-            ${{ steps.version.outputs.type == 'post' && '📦 Post Release' || '' }}
-            ${{ steps.version.outputs.type == 'stable' && '🚀 Release' || '' }}
-            ${{ steps.version.outputs.tag }}
-          body_path: release_body.md
-          prerelease: ${{ steps.version.outputs.type == 'dev' || steps.version.outputs.type == 'alpha' || steps.version.outputs.type == 'beta' || steps.version.outputs.type == 'rc' }}
-          files: release.zip
+
+          name: ${{ steps.title.outputs.title }}
+
+          body_path: ${{ steps.notes.outputs.notes_path }}
+
+          prerelease: ${{ steps.version.outputs.prerelease }}
+
+          files: |
+            dist/*.whl
+            dist/*.tar.gz
 
           # Additionally options
           ## generate_release_notes: true
           ## append_body: true
-          make_latest: ${{ steps.version.outputs.type == 'stable' }}
-          fail_on_unmatched_files: false
+          ## make_latest: ${{ steps.version.outputs.type == 'stable' }}
+          ## fail_on_unmatched_files: false

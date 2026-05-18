@@ -16,8 +16,16 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+      - develop
+
   pull_request:
+    branches:
+      - main
+      - develop
+
+  workflow_dispatch:
 
 jobs:
   test:
@@ -28,12 +36,17 @@ jobs:
     # Run tests across multiple Python versions
     # -----------------------------------------------------
     strategy:
+      fail-fast: false
       matrix:
-        python-version: ["3.11", "3.12", "3.13", "3.14"]
+        python-version:
+          - "3.11"
+          - "3.12"
+          - "3.13"
+          - "3.14"
 
     steps:
-      # 📥 Clone repository
-      - name: 📥 Checkout
+      # 📥 Checkout repository
+      - name: 📥 Checkout repository
         uses: actions/checkout@v4
 
       # 🐍 Setup Python
@@ -41,13 +54,14 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          cache: "pip"  # ⚡ Speeds up dependency installation
+          cache: "pip" # ⚡ Speeds up dependency installation
 
-      # 📦 Install project (editable mode with dev deps)
+      # 📦 Install dependencies (editable mode with dev deps)
       - name: 📦 Install dependencies
         run: |
+          python -m pip install --upgrade pip
           pip install -e .[dev]
 
-      # 🧪 Run tests
-      - name: 🧪 Run Tests
-        run: pytest
+      # ✅ FULL VALIDATION
+      - name: ✅ Run validation workflow
+        run: make check
