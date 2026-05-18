@@ -2,6 +2,8 @@
 
 name: 🧪 Continuous Integration
 
+run-name: ✅ CI Validation • ${{ github.ref_name }}
+
 # =========================================================
 # 🧪 Continuous Integration Workflow
 # ---------------------------------------------------------

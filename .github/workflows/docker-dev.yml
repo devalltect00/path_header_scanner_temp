@@ -2,6 +2,8 @@
 
 name: 🐋 Docker Development Image
 
+run-name: 🐋 Dev Docker Build • ${{ github.ref_name }}
+
 # =========================================================
 # 🐋 Development Docker Image
 # ---------------------------------------------------------

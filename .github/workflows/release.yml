@@ -2,6 +2,8 @@
 
 name: 🚀 Release
 
+run-name: 🚀 Release ${{ github.ref_name }}
+
 # =========================================================
 # 🚀 GitHub Release Workflow
 # ---------------------------------------------------------
@@ -194,6 +196,14 @@ jobs:
           fi
 
           echo "title=$TITLE $TAG" >> $GITHUB_OUTPUT
+
+      # =====================================================
+      # 📦 Install dependencies (editable mode with dev deps)
+      # =====================================================
+      - name: 📦 Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[dev]
 
       # =====================================================
       # 🧪 RUN VALIDATION
