@@ -1,7 +1,7 @@
 # app/core/initialize/init_spec.py
 
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import Optional
 
 
 @dataclass
@@ -39,7 +39,7 @@ class InitSpec:
     """
 
     name: str
-    templates: List
-    dirs: List
-    template_dirs: Optional[List] = None
-    messages: Optional[List[str]] = None
+    templates: list
+    dirs: list
+    template_dirs: Optional[list] = None
+    messages: Optional[list[str]] = None

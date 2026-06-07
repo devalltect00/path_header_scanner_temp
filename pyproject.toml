@@ -204,8 +204,13 @@ select = [
 
 ignore = [
     "UP045",    # pyupgrade. Ignore checking for example: 'Optional[str]' -> 'str | None'
-    "COM812"    # flake8-commas. Ignore trailing comma
+    "COM812",   # flake8-commas. Ignore trailing comma
+    "E501",     # line-too-long
+    "UP042"     # pyupgrade StrEnum suggestion
 ]
+
+[tool.ruff.lint.per-file-ignores]
+"app/cli/commands/**/*.py" = ["F403", "F405"]
 
 # =========================================================
 # RUFF FORMAT

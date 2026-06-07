@@ -4,11 +4,9 @@ import logging
 import sys
 
 import typer
-from typer.main import get_command
 
 from app.cli.constants.args import CliArgs
 from app.cli.utils import banner
-from app.config.config_loader import get_config
 
 from .options import *
 from .resolver import resolve_main_args

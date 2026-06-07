@@ -1,6 +1,5 @@
 # app/core/initialize/generate.py
 
-import shutil
 from importlib.resources import files
 from pathlib import Path
 

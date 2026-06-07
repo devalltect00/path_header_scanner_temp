@@ -102,7 +102,6 @@ def resolve_target_path(
     # =====================================================
 
     if input_path.is_absolute():
-
         attempted_paths.append(str(input_path))
 
         if input_path.exists():
@@ -113,7 +112,6 @@ def resolve_target_path(
     # =====================================================
 
     if working_directory is not None:
-
         workdir_path = Path(working_directory)
 
         resolved_workdir_path = workdir_path / input_path
@@ -128,7 +126,6 @@ def resolve_target_path(
     # =====================================================
 
     if is_running_in_docker():
-
         docker_workspace_path = DOCKER_WORKSPACE / input_path
 
         attempted_paths.append(str(docker_workspace_path))

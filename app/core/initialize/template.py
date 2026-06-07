@@ -1,7 +1,8 @@
 # app/core/initialize/template.py
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable, Optional
+from typing import Optional
 
 
 @dataclass
@@ -15,6 +16,7 @@ class TemplateFile:
         if callable(self.content):
             return self.content()
         return self.content or ""
+
 
 @dataclass
 class TemplateDir:

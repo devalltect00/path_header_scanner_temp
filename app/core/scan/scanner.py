@@ -102,14 +102,11 @@ class FileScanner:
         )
 
         if not self.root_directory.exists():
-            raise FileNotFoundError(
-                f"Directory does not exist: " f"{self.root_directory}"
-            )
+            raise FileNotFoundError(f"Directory does not exist: {self.root_directory}")
 
         matched_files: list[Path] = []
 
         for file_path in self.root_directory.rglob("*"):
-
             if not file_path.is_file():
                 continue
 

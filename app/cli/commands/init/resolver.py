@@ -2,7 +2,6 @@
 
 from app.cli.constants.enums import (
     InitMode,
-    LogLevelChoices,
 )
 
 from .models import InitArgs

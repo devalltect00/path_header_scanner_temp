@@ -48,8 +48,8 @@ import argparse
 import shutil
 import subprocess
 import sys
+from collections.abc import Iterable, Sequence
 from pathlib import Path
-from typing import Iterable, List, Sequence
 
 from rich.progress import (
     BarColumn,
@@ -138,7 +138,7 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def discover_files(input_dir: Path, input_glob: str, recursive: bool) -> List[Path]:
+def discover_files(input_dir: Path, input_glob: str, recursive: bool) -> list[Path]:
     if recursive:
         return sorted(input_dir.rglob(input_glob))
     return sorted(input_dir.glob(input_glob))
@@ -175,9 +175,9 @@ def build_mmdc_command(
     width: int | None = None,
     height: int | None = None,
     scale: float | None = None,
-) -> List[str]:
+) -> list[str]:
     resolved_mmdc = resolve_mmdc_executable(mmdc)
-    cmd: List[str] = [resolved_mmdc, "-i", str(input_file), "-o", str(output_file)]
+    cmd: list[str] = [resolved_mmdc, "-i", str(input_file), "-o", str(output_file)]
 
     if theme:
         cmd.extend(["-t", theme])
@@ -262,8 +262,8 @@ def main() -> int:
     print(f"FORMAT={args.format}")
     print(f"FILES_FOUND={len(files)}")
 
-    failed: List[Path] = []
-    succeeded: List[Path] = []
+    failed: list[Path] = []
+    succeeded: list[Path] = []
 
     def render_one(src: Path) -> None:
         out_file = build_output_path(src, input_dir, output_dir, args.format)

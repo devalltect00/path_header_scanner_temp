@@ -3,6 +3,6 @@
 from .versions import banner, version_callback
 
 __all__ = [
-  "banner",
-  "version_callback",
+    "banner",
+    "version_callback",
 ]

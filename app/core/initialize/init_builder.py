@@ -1,6 +1,6 @@
 # app/core/initialize/init_builder.py
 
-from typing import List, Optional
+from typing import Optional
 
 from app.cli.constants.enums import InitMode
 from app.core.initialize.init_config import InitConfig
@@ -28,10 +28,10 @@ class InitBuilder:
 
         # Optional overrides (advanced usage)
         self._name: Optional[str] = None
-        self._templates: Optional[List] = None
-        self._dirs: Optional[List] = None
-        self._template_dirs: Optional[List] = None
-        self._messages: Optional[List[str]] = None
+        self._templates: Optional[list] = None
+        self._dirs: Optional[list] = None
+        self._template_dirs: Optional[list] = None
+        self._messages: Optional[list[str]] = None
 
     # =========================================================
     # 🔧 Fluent API (Optional)
@@ -41,19 +41,19 @@ class InitBuilder:
         self._name = name
         return self
 
-    def with_templates(self, templates: List):
+    def with_templates(self, templates: list):
         self._templates = templates
         return self
 
-    def with_dirs(self, dirs: List):
+    def with_dirs(self, dirs: list):
         self._dirs = dirs
         return self
 
-    def with_template_dirs(self, template_dirs: List):
+    def with_template_dirs(self, template_dirs: list):
         self._template_dirs = template_dirs
         return self
 
-    def with_messages(self, messages: List[str]):
+    def with_messages(self, messages: list[str]):
         self._messages = messages
         return self
 

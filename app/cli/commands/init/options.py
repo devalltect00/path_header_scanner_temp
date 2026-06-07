@@ -1,14 +1,12 @@
 # app/cli/commands/init/options.py
 
-from pathlib import Path
-from typing import Annotated, Optional
+from typing import Annotated
 
 import typer
 
 from app.cli.constants.completions import completion_initialization_mode
 from app.cli.constants.enums import (
     InitMode,
-    LogLevelChoices,
 )
 
 # =========================================================

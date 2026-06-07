@@ -1,7 +1,6 @@
 # app/cli/commands/scan/options.py
 
-from pathlib import Path
-from typing import Annotated, List, Optional
+from typing import Annotated
 
 import typer
 

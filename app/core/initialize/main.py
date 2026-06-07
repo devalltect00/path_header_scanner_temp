@@ -9,7 +9,6 @@ from app.core.initialize.init_config import InitConfig
 
 class InitMain:
     def execute(self, args):
-
         # =========================================================
         # 1. Build config (single source of truth)
         # =========================================================

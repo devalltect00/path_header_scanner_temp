@@ -99,7 +99,6 @@ class FileUpdater:
             # VALID
             # =========================
             if current_header == expected_header:
-
                 return FileProcessResult(
                     file_path=file_path,
                     status=FileStatus.VALID,
@@ -112,7 +111,6 @@ class FileUpdater:
             # INVALID
             # =========================
             if current_header is not None:
-
                 updated_content = self._replace_header(
                     lines=lines,
                     strategy=strategy,
@@ -167,7 +165,6 @@ class FileUpdater:
             )
 
         except Exception as error:
-
             logger.exception(
                 "Failed processing file: %s",
                 file_path,

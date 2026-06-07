@@ -3,7 +3,7 @@
 import logging
 import tomllib
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from app.constants.path import PATH_HEADER_SCANNER_SETTINGS
 
@@ -92,12 +92,12 @@ class ConfigLoader:
             filename (str): Path to config file.
         """
         self.filename: str = filename
-        self.config: Dict[str, Any] = self._load()
+        self.config: dict[str, Any] = self._load()
 
     # ---------------------------------------------------------
     # Core Loader
     # ---------------------------------------------------------
-    def _load(self) -> Dict[str, Any]:
+    def _load(self) -> dict[str, Any]:
         """
         Load TOML config file.
 
@@ -163,7 +163,7 @@ class ConfigLoader:
             raise ConfigError(f"Missing required config: {'.'.join(keys)}")
         return value
 
-    def get_section(self, *keys: str) -> Dict[str, Any]:
+    def get_section(self, *keys: str) -> dict[str, Any]:
         """
         Return a full section as dict.
 
@@ -179,7 +179,7 @@ class ConfigLoader:
     def resolve(
         self,
         cli_value: Any,
-        config_keys: List[str],
+        config_keys: list[str],
         default: Any = None,
         *,
         treat_false_as_none: bool = False,

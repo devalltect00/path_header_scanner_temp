@@ -1,5 +1,6 @@
 # app/utils/parsing.py
 
+
 def parse_size(size: str) -> int:
     """
     Convert human-readable size into bytes.
@@ -13,8 +14,8 @@ def parse_size(size: str) -> int:
 
     units = {
         "KB": 1024,
-        "MB": 1024 ** 2,
-        "GB": 1024 ** 3,
+        "MB": 1024**2,
+        "GB": 1024**3,
     }
 
     for unit, multiplier in units.items():

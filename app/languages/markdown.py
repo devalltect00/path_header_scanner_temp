@@ -79,7 +79,7 @@ class MarkdownLanguageStrategy(BaseLanguageStrategy):
                 Formatted Markdown header.
         """
 
-        return f"<!-- " f"{relative_path.as_posix()} " f"-->"
+        return f"<!-- {relative_path.as_posix()} -->"
 
     def extract_header(
         self,
