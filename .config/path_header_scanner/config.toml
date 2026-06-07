@@ -1,0 +1,50 @@
+# ==========================================================
+# Main Config
+# ==========================================================
+
+[tool.path_header_scanner]
+
+
+# -----------------------------
+# CLI - Initialization
+# -----------------------------
+# Related to CLI as default value
+[tool.path_header_scanner.initialization]
+force = false
+ask = false
+
+
+# -----------------------------
+# CLI - Execution
+# -----------------------------
+# Related to CLI as default value
+[tool.path_header_scanner.cli.execution]
+debug = false         # valid values: true, false
+
+# -----------------------------
+# CLI - Scan
+# -----------------------------
+# Related to CLI as default value
+[tool.path_header_scanner.cli.scan]
+target_directory = "app"         # Target directory or folder's name
+# workdir =                      # Ignore this
+apply = false
+include_target_directory = true
+
+# ==========================================================
+# Logging
+# ==========================================================
+[tool.path_header_scanner.logging]
+level = "INFO"          # DEBUG, INFO, WARNING, ERROR, CRITICAL
+markup = true
+rich_tracebacks = true
+show_time = false
+show_level = false
+console_format = "%(message)s"
+
+[tool.path_header_scanner.logging.file]
+log_dir = "logs"
+log_file = "app.log"
+max_bytes = "10MB"      # nKB, nMB, nGB
+backup_count = 5
+file_format = "%(asctime)s | %(levelname)s | %(name)s | %(message)s"

@@ -13,8 +13,11 @@ This module validates:
 
 from pathlib import Path
 
-from app.core.processor import FileProcessor
-from app.core.scanner import FileScanner
+from app.constants.path import (
+    TARGET_PROJECT_SOURCE,
+)
+from app.core.scan.processor import FileProcessor
+from app.core.scan.scanner import FileScanner
 from app.languages.html import HtmlLanguageStrategy
 from app.languages.javascript import (
     JavaScriptLanguageStrategy,
@@ -46,7 +49,7 @@ def test_full_project_scan_and_update(
     # =========================
     # Create directories
     # =========================
-    app_directory = tmp_path / "app"
+    app_directory = tmp_path / TARGET_PROJECT_SOURCE
     scripts_directory = tmp_path / "scripts"
     templates_directory = tmp_path / "templates"
 
@@ -80,7 +83,7 @@ def test_full_project_scan_and_update(
     shell_file = scripts_directory / "run.sh"
 
     shell_file.write_text(
-        ("#!/bin/bash\n" "echo hello\n"),
+        ("#!/bin/bash\necho hello\n"),
         encoding="utf-8",
     )
 
@@ -100,7 +103,7 @@ def test_full_project_scan_and_update(
     php_file = app_directory / "index.php"
 
     php_file.write_text(
-        ("<?php\n" 'echo "hello";\n'),
+        ('<?php\necho "hello";\n'),
         encoding="utf-8",
     )
 

@@ -37,3 +37,6 @@ docker run -it --rm -v "%cd%:/workspace" -w /workspace path-header-scanner-prod:
 
 docker run -it --rm --entrypoint "" -v "%cd%:/workspace" -w /workspace path-header-scanner-dev:latest python -m pytest -v
 
+------------
+
+docker run --rm -it -v "%cd%:/workspace" -w /workspace ghcr.io/devalltect00/path_header_scanner:latest scan app

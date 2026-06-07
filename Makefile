@@ -347,11 +347,11 @@ l-scan-only:
 
 .PHONY: l-scan-apply
 l-scan-apply:
-	@$(MAKE) l-scan TARGET="$(TARGET)" DOCKER_SCAN_ARGS="--apply
+	@$(MAKE) l-scan TARGET="$(TARGET)" LOCAL_SCAN_ARGS="--apply
 
 .PHONY: l-scan-debug
 l-scan-debug:
-	@$(MAKE) l-scan TARGET="$(TARGET)" DOCKER_SCAN_ARGS="--debug
+	@$(MAKE) l-scan TARGET="$(TARGET)" LOCAL_SCAN_ARGS="--debug
 
 
 # =========================================================

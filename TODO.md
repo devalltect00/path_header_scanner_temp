@@ -1,0 +1,5 @@
+- [x] Add Rich progress UI to `scripts/docs/render_mermaid.py` while preserving current behavior
+- [x] Add `--no-progress` option for non-interactive/CI usage
+- [x] Update `docs/diagrams/README.md` with progress usage
+- [x] Test default progress and `--no-progress` mode
+- [x] Mark TODO completion

@@ -1,0 +1,30 @@
+# Virtual environments
+.venv/
+venv/
+
+# Python cache
+__pycache__/
+
+# Build artifacts
+build/
+dist/
+
+# Coverage
+.coverage
+htmlcov/
+
+# Git
+.git/
+
+# MkDocs output
+site/
+
+# IDE
+.vscode/
+.idea/
+
+# Node
+node_modules/
+
+# Generated docs
+docs/site/

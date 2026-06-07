@@ -2,9 +2,18 @@
 
 # Path Header Scanner
 
+![Build](https://github.com/devalltect00/Path-Header-Scanner/actions/workflows/ci.yml/badge.svg)
+![Release](https://img.shields.io/github/v/release/devalltect00/Path-Header-Scanner)
+![Python](https://img.shields.io/badge/python-3.14+-blue.svg)
+![License](https://img.shields.io/github/license/devalltect00/Path-Header-Scanner)
+![Ruff](https://img.shields.io/badge/lint-ruff-purple.svg)
+![Pytest](https://img.shields.io/badge/tested%20with-pytest-0A9EDC.svg)
+![MkDocs](https://img.shields.io/badge/docs-MkDocs-success.svg)
+
 A clean and lightweight developer utility for automatically inserting, validating, and updating file path headers across source code and documentation files.
 
 Supports:
+
 - Python
 - JavaScript / TypeScript
 - Shell scripts
@@ -13,6 +22,7 @@ Supports:
 - Markdown
 
 Designed for:
+
 - local development
 - Docker workflows
 - CI/CD pipelines
@@ -169,14 +179,14 @@ See full structure in [`project_structure.md`](docs/project_structure.md).
 
 # Supported Languages
 
-| Language | Extensions |
-|---|---|
-| Python | `.py` |
+| Language                | Extensions                   |
+| ----------------------- | ---------------------------- |
+| Python                  | `.py`                        |
 | JavaScript / TypeScript | `.js`, `.jsx`, `.ts`, `.tsx` |
-| Shell | `.sh`, `.bash`, `.zsh` |
-| PHP | `.php` |
-| HTML | `.html`, `.htm` |
-| Markdown | `.md`, `.markdown` |
+| Shell                   | `.sh`, `.bash`, `.zsh`       |
+| PHP                     | `.php`                       |
+| HTML                    | `.html`, `.htm`              |
+| Markdown                | `.md`, `.markdown`           |
 
 See full documentation in [`supported_languages.md`](docs/path-header/languages/supported_languages.md).
 

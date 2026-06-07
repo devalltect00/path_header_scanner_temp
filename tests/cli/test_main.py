@@ -15,8 +15,43 @@ from pathlib import Path
 from typer.testing import CliRunner
 
 from app.cli.main import app
+from app.cli.utils import banner
 
 runner = CliRunner()
+
+
+def test_main_help_shows_banner_by_default(monkeypatch) -> None:
+    calls = {"count": 0}
+
+    def fake_show():
+        calls["count"] += 1
+
+    monkeypatch.setattr(banner, "show", fake_show)
+
+    result = runner.invoke(
+        app,
+        ["--help"],
+    )
+
+    assert result.exit_code == 0
+    assert calls["count"] == 1
+
+
+def test_main_help_no_banner_flag(monkeypatch) -> None:
+    calls = {"count": 0}
+
+    def fake_show():
+        calls["count"] += 1
+
+    monkeypatch.setattr(banner, "show", fake_show)
+
+    result = runner.invoke(
+        app,
+        ["--no-banner", "--help"],
+    )
+
+    assert result.exit_code == 0
+    assert calls["count"] == 0
 
 
 def test_scan_command_success(
@@ -168,7 +203,7 @@ def test_scan_command_multiple_languages(
     )
 
     php_file.write_text(
-        ("<?php\n" 'echo "hello";\n'),
+        ('<?php\necho "hello";\n'),
         encoding="utf-8",
     )
 

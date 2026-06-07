@@ -15,9 +15,17 @@
 
   // Python formatter
   "[python]": {
-    "editor.defaultFormatter": "ms-python.autopep8",
-    "editor.tabSize": 4,
-    "editor.insertSpaces": true
+    // "editor.defaultFormatter": "ms-python.autopep8",
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.formatOnSave": true,
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit",
+
+      "source.fixAll.ruff": null
+    }
   },
 
   // Prettier only for web/text formats
