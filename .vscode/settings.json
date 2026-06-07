@@ -74,7 +74,12 @@
     "**/__pycache__": true,
     "**/*.pyc": true,
     "**/*.pyo": true,
-    ".venv": true
+    ".venv": true,
+    "**/.git": false,
+  },
+  "explorer.excludeGitIgnore": false,
+  "search.exclude": {
+    "**/.git": true
   },
 
   // =========================================================
